@@ -1,0 +1,63 @@
+---
+layout: default
+title: "Posts"
+---
+<div class="row">
+	<nav class="navbar navbar-expand-lg navbar-dark">
+	  <div class="container-fluid">
+	    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01" aria-expanded="false" aria-label="Toggle navigation">
+	      <span class="navbar-toggler-icon"></span>
+	    </button>
+	    <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
+	      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+					<li class="nav-item">
+		        <a class="nav-link" href="{{ "/index.html" | relative_url }}">INÍCIO</a>
+		      </li>
+		      <li class="nav-item">
+		        <a class="nav-link active" href="#">POSTAGENS</a>
+		      </li>
+					<li class="nav-item">
+		        <a class="nav-link" href="{{ "/projects.html" | relative_url }}">PROJETOS</a>
+		      </li>
+					<li class="nav-item">
+		        <a class="nav-link" href="{{ "/contact.html" | relative_url }}">CONTATO</a>
+		      </li>
+	      </ul>
+	    </div>
+	  </div>
+	</nav>
+</div>
+<div class="row" id="rowContent">
+	<div class="col-xs-12 col-sm-12">
+		<div class="row">
+			<center><h2 id="titleContent">Todas as postagens</h2></center>
+			<hr style="color: white;"/>
+		</div>
+    {% assign postsByYear = site.posts | group_by_exp:"post", "post.date | date: '%Y'" %}
+    {% for year in postsByYear %}
+    <div class="row justify-content-around">
+			<div class="col-sm-4">
+				<center><h3>{{ year.name }}</h3></center>
+			</div>
+		  <div class="col-sm-8">
+				<ol class="list-group list-group-flush my-3">
+        {% assign postsByMonth = year.items | group_by_exp:"post", "post.date | date: '%B'" %}
+          {% for month in postsByMonth %}
+            {% for post in month.items %}
+  				  <li class="d-flex justify-content-between align-items-start" style="border-style: none none none solid; border-color: #555458;">
+  				    <div class="ms-2 me-auto">
+  							<a target="_blank" href="{{ post.url }}">
+  					      <div class="fw-bold">{{ post.title }}</div>
+  								<p>Data: {{ post.data }}</p>
+  							</a>
+  				    </div>
+  				  </li>
+            {% endfor %}
+          {% endfor %}
+				</ol>
+		  </div>
+    </div>
+    <hr style="color: white;"/>
+    {% endfor %}
+  </div>
+</div>

@@ -1,0 +1,12 @@
+title: ????? Blog
+
+baseurl: "/"
+url: "https://v3ntur4x.github.io"
+
+keywords: programming, web, information security, hacking
+
+defaults:
+  - scope:
+      path: "assets/images"
+    values:
+      image: True

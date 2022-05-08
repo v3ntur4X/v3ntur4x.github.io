@@ -1,0 +1,110 @@
+---
+layout: post
+title: "SECARMY CTF: BabyPhp — Write-Up"
+data: "21/04/2019"
+excerpts: "Resolução do desafio de web do SECARMY CTF: BabyPhp"
+keywords: "secarmyctf, babyphp, php, writeup, ctftime"
+type: "article"
+card: "/assets/images/secarmy-ctf-babyphp-write-up/image.png"
+---
+<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 mb-3">
+  <div class="list-group" id="list-tab">
+    <a class="list-group-item list-group-item-action bg-dark text-white" href="#babyphp">SECARMY CTF: BabyPhp — Write-Up</a>
+    <a class="list-group-item list-group-item-action bg-dark text-white" href="#references">Links</a>
+  </div>
+</div>
+<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6 mb-3">
+  <div data-bs-spy="scroll" data-bs-target="#list-tab" data-bs-offset="0" class="scrollspy-example" tabindex="0">
+    <section>
+      <h1 class="fw-bold" id="babyphp">SECARMY CTF: BabyPhp — Write-Up</h1>
+      <p>E aí, galera, de boas? Meu nick é v3ntur4X, dessa vez vou fazer a resolução de um desafio web que aconteceu no SecArmy CTF, que rolou nos dias 18/04 e 19/04.</p>
+      <p>Vamos lá!</p>
+      <p>O desafio falava para acessar uma url: https://sec-army.ml/babyphp/babyphp.php</p>
+      <p>E, ao acessar, era possível ver isso:</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/secarmy-ctf-babyphp-write-up/1.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Página "babyphp.php"</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>Eu percebi que era um base64 e decodei ele, que retornou um join:</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/secarmy-ctf-babyphp-write-up/2.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Decode do base64</figcaption>
+      </figure>
+      <p>E eu não sabia ao certo se estava se tratando de um MySQL ou Python, então fui testar. Testei no próprio Python e deu certo!</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/secarmy-ctf-babyphp-write-up/3.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Execução o método join</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>Como é possível ver na imagem acima, ele pedia para passar o parâmetro "viewsource" via GET e assim eu fiz.</p>
+      <p>E ele mostrou o código fonte do arquivo "babyphp.php":</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/secarmy-ctf-babyphp-write-up/4.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Código fonte do "babyphp.php"</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>A partir daí comecei a procurar entender mais o código.</p>
+      <p>Até a função "highlight_file" é possível entender que se não fosse passado o parâmetro "viewsource" ele retornaria o base64.</p>
+      <p>Procurei me localizar pelas saídas que o código retornava para me orientar em que parte do código eu estava:</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/secarmy-ctf-babyphp-write-up/5.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Primeiro IF</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>A partir do primeiro IF eu enviei o parâmetro "key" e agora foi retornado uma saída diferente:</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/secarmy-ctf-babyphp-write-up/6.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Segundo IF</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>Agora nesse segundo IF, ele faz uso da função de comparação, "strcmp". Ele compara o valor passado em "key" com uma variável "$key", mas não sabemos o valor de $key e ficar tentando possibilidades não seria tão inteligente, pois existe uma forma de dar bypass na função strcmp :).</p>
+      <p>Precisamos entender como funciona o strcmp (deixarei o link tanto do bypass quanto da documentação do php sobre o strcmp no final do writeup): retorna < 0 se a primeira string é menor do que a segunda; > 0 se a primeira string é maior do que a segunda, e 0 se forem iguais.</p>
+      <p>Agora para dar o bypass, passaremos o parâmetro no key um array vazio: &key[], pois passando tal array o strcmp retorna o valor NULL e devido algumas complicações no PHP em relação ao que tange comparações, o PHP trata NULL igual a 0, e o IF considera o valor 0 como false, logo o que está dentro do IF não será executado.</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/secarmy-ctf-babyphp-write-up/7.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Bypass do "strcmp"</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>Agora nesse terceiro IF, é preciso passar um novo parâmetro chamado "secret":</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/secarmy-ctf-babyphp-write-up/8.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Novo parâmetro passado</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>Nesse quarto e último IF é preciso entender algumas coisas antes...</p>
+      <p>Algumas linhas antes do último IF são declaradas 4 variáveis: $_p, $_l, $l, $_i. As duas primeiras variáveis são de fácil entendimento, apenas foram declarados alguns valores para elas: 1337 e 13, respectivamente. As duas ultimas precisam de mais atenção. Na $l é chamado uma função para retornar o comprimento (strlen — link da documentação do php sobre essa função estará no final do writeup) do valor/string que será recebido do parâmetro "secret". E na $_i é chamado uma função para retornar o valor inteiro (intval — link da documentação sobre essa função estará no final do writeup) de uma variável, no caso, também será o valor/string que será recebido de "secret".</p>
+      <p>E no quarto IF, temos que ele quer que $l seja diferente de $_l ou que $_i seja diferente de $p, mas nós não vamos atender esse IF, precisamos que ambas condições sejam falsas, ou seja, que $l seja igual $_l e que $_i seja igual $p.</p>
+      <p>Para isso, passaremos o valor "1337.00000001", pois, contando o ponto (para demarcar como um valor não inteiro), temos 13 caracteres (assim, igualará $l à $_l) e quando o intval entrar execução ele irá apenas retornar 1337 (assim, igualando $_i à $p).</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/secarmy-ctf-babyphp-write-up/9.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Quase lá</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>No source da página:</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/secarmy-ctf-babyphp-write-up/10.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Flag!</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>É isso, qualquer crítica ou dúvida podem fazer!</p>
+      <br />
+      <h4 class="fw-bold" id="references">Links:</h4>
+      <p><a class="btn btn-dark text-white" href="https://www.php.net/manual/pt_BR/index.php">Manual do PHP</a></p>
+      <p><a class="btn btn-dark text-white" href="https://php.net/manual/pt_BR/function.strcmp.php">Manual do PHP - função strcmp</a></p>
+      <p><a class="btn btn-dark text-white" href="https://www.php.net/manual/pt_BR/function.strlen.php">Manual do PHP - função strlen</a></p>
+      <p><a class="btn btn-dark text-white" href="https://www.php.net/manual/pt_BR/function.intval.php">Manual do PHP - função intval</a></p>
+      <p><a class="btn btn-dark text-white" href="https://www.doyler.net/security-not-included/bypassing-php-strcmp-abctf2016">Bypassing PHP strcmp() (ABCTF2016 – L33t H4xx0r)</a></p>
+      <p><a class="btn btn-dark text-white" href="https://danuxx.blogspot.com/2013/03/unauthorized-access-bypassing-php-strcmp.html">Unauthorized Access: Bypassing PHP strcmp()</a></p>
+    </section>
+  </div>
+</div>

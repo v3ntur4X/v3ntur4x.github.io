@@ -1,0 +1,32 @@
+div {
+	background-color: #000000;
+}
+h1, h2, h3, h4, h5 {
+	color: #4682B4;
+}
+p {
+	font-family: "Monospace";
+	color: #a9a9b5;
+}
+ol {
+	border: 1px solid #000;
+}
+.list-group-item {
+	background-color: #1C1C1C;
+}
+li {
+	color: white !important;
+}
+section {
+  width: 100%;
+}
+pre {
+  font-family: "Courier New";
+  background: black;
+  color: white;
+  border-radius: 5px;
+  overflow: auto;
+  width: 100%;
+  border-style: none none none solid;
+	border-left-color: #555458;
+}

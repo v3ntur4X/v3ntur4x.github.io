@@ -1,0 +1,23 @@
+<head>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+	<title>{% if page.title %}{{site.title}} | {{page.title}}{% else %}{{site.title}}{% endif %}</title>
+	<meta name="title" content="{% if page.title %}{{site.title}} | {{page.title}}{% else %}{{site.title}}{% endif %}">
+	<meta name="description" content="My study, programming, and hacking notes">
+	<meta name="keywords" content="{% if page.keywords %}{{page.keywords}}{% else %}{{site.keywords}}{% endif %}">
+	<meta name="robots" content="noindex, nofollow">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta name="language" content="Portuguese">
+	<meta property="og:title" content="{% if page.title %}{{site.title}} | {{page.title}}{% else %}{{site.title}}{% endif %}" />
+	<meta property="og:image" itemprop="image" content="{% if page.card %}{{page.card}}{% else %}{{/assets/images/favicon/favicon-300x200.png}}{% endif %}">
+	<meta property="og:type" content="{% if page.type %}{{ page.type }}{% else %}blog{% endif %}" />
+	<link rel="shortcut icon" href="/favicon.ico">
+	<link rel="apple-touch-icon" sizes="180x180" href="/assets/images/favicon/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon/favicon-16x16.png">
+	<link rel="manifest" href="/assets/images/favicon/site.webmanifest">
+	<link href={{ "/assets/dist/css/style.css" | relative_url }} rel="stylesheet" type="text/css" />
+	<link href={{ "/assets/dist/css/bootstrap.min.css" | relative_url }} rel="stylesheet" type="text/css" />
+	<script src={{ "/assets/dist/js/bootstrap.bundle.min.js" | relative_url }}></script>
+</head>

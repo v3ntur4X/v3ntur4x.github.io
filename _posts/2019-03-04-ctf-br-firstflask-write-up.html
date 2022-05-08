@@ -1,0 +1,236 @@
+---
+layout: post
+title: "CTF-BR: firstflask — Write-Up"
+data: "04/03/2019"
+excerpts: "Resolução do desafio de web do CTF-BR: firstflask"
+keywords: "firstflask, python, writeup"
+type: "article"
+card: "/assets/images/ctf-br-firstflask-write-up/image.png"
+---
+<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 mb-3">
+  <div class="list-group" id="list-tab">
+    <a class="list-group-item list-group-item-action bg-dark text-white" href="#firstflask">CTF-BR: firstflask Write-Up</a>
+    <a class="list-group-item list-group-item-action bg-dark text-white" href="#references">Links sobre a exploração do pickle</a>
+  </div>
+</div>
+<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6 mb-3">
+  <div data-bs-spy="scroll" data-bs-target="#list-tab" data-bs-offset="0" class="scrollspy-example" tabindex="0">
+    <section>
+      <h1 class="fw-bold" id="firstflask">CTF-BR: firstflask Write-Up</h1>
+      <p>E aí, galera, beleza? Meu nick é v3ntur4X e eu vou explicar como eu resolvi a chall que o j3r3mias fez pro CTF-BR!</p>
+      <p>Eu entrei no link que eles disponibilizaram: http://142.93.73.149:1337</p>
+      <figure class="figure">
+      <img src="{{ "/assets/images/ctf-br-firstflask-write-up/1.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Index do site</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>Analisei, fui no robots.txt e não tinha.</p>
+      <p>Abri a source da página e vi um "/pagina" comentado no código:</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/ctf-br-firstflask-write-up/2.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Código fonte da index</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>Acessei o /pagina e apareceu a source de um arquivo (código do app.py):</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/ctf-br-firstflask-write-up/3.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Source do app.py</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>Não sabia muito o que fazer pois nunca tinha trabalhado com Flask, então fiquei um tempo analisando o código e mandei pra um editor para poder ter melhor manuseio do mesmo.</p>
+      <p>Quando eu consegui compreender parte do código, eu me liguei que precisava ter uma sessão para fazer a maioria das ações no servidor.</p>
+      <p>Então vi que conseguiria criar um usuário sem ter sessão usando o /add_user:</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/ctf-br-firstflask-write-up/4.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Parte do código, referente ao /add_user</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>Então criei uma requisição com o Burpsuite, copiando a requisição do /login (enviei algumas credenciais quaisquer apenas para gerar a requisição):</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/ctf-br-firstflask-write-up/5.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Criando um usuário (id=username, pw=password)</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>Como é possível ver, deu reposta 302, ou seja, o usuário foi criado!</p>
+      <p>É só logar!</p>
+
+      <figure class="figure">
+        <img src="{{ "/assets/images/ctf-br-firstflask-write-up/6.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Logado no usuário "wr1t3up"</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p class="pt-br">Em "Imagem", antes de logar era possível ver uma imagem do Pikachu:</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/ctf-br-firstflask-write-up/7.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Imagem do Pikachu</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>Depois de logado, é possível ver uma outra imagem, uma imagem do "'Pickle' Rick" da animação "Rick and Morty":</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/ctf-br-firstflask-write-up/8.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Imagem do "Pickle" Rick</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>E isso era uma DICA da vulnerabilidade a ser explorada!</p>
+      <p>E em "Notas" é possível criar uma nota:</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/ctf-br-firstflask-write-up/9.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Página do "Notas"</figcaption>
+        <figcaption class="figure-caption text-center fw-bold fst-italic">"Notas" page</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>Porém, para acessar uma nota, era necessário estar logado como ADMIN:</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/ctf-br-firstflask-write-up/10.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Parte do código, referente ao /note</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>Logo, não faria sentido criar uma nota com aquele usuário, pois teria que logar como ADMIN para acessar-lá, então era mais prático logar como ADMIN. Para isso, utilizei o /info para obter informação do ADMIN.</p>
+      <p>No código do /info é possível acessar informações de um usuário passando "?username=usuariodesejado" via GET:</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/ctf-br-firstflask-write-up/11.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Parte do código, referente ao /info</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>Obtendo, então, informação do usuário ADMIN:</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/ctf-br-firstflask-write-up/12.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Resultado do /info</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>É possível ver uma hash:</p>
+      <pre>0a65b5cf991cc23229b63fa717373b0bc0475e2fa6710320357c4176eddcdb62</pre>
+      <p>"Quebrando" ela, tem-se: hitmebab1mortym</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/ctf-br-firstflask-write-up/13.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Hash quebrada</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>Então, agora é só logar como ADMIN!</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/ctf-br-firstflask-write-up/14.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Logado como admin</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>Acessando "Notas" é possível ver que já tem uma nota cadastrada, usarei ela apenas para entender como acessar as notas (algo bem simples, na verdade).</p>
+      <p>Segundo o próprio código do /note, só é preciso passar o id da nota no parâmetro "ni":</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/ctf-br-firstflask-write-up/15.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Parte do código, referente ao /note</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>ID da nota que já está cadastrada:</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/ctf-br-firstflask-write-up/16.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">ID da nota pré-cadastrada</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>Acessando a nota:</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/ctf-br-firstflask-write-up/17.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic pt-br">Acessando a nota</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>Voltando ao "Notas"...</p>
+      <p>Agora, é necessário criar uma nota, porém é preciso entender algumas coisas antes:</p>
+      <ul>
+        <li>O código está usando um "object serialization": pickle.</li>
+        <li>O pickle é usado para serializar e desserializar uma estrutura de objetos Python, então para explorar o pickle nada melhor que criar um objeto que executa algum comando.</li>
+        <li>Mas antes disso é preciso entender que mandar só o objeto serializado não fará com que o mesmo seja executado pelo servidor, é necessário encodar com base64, já que o código faz decode de base64, para ser executado.</li>
+        <li>E para que a requisição aceite e faça o decode do base64, é necessário adicionar "usebase64" na mesma.</li>
+      </ul>
+      <p>E sobre a exploração do pickle, irei deixar alguns links, no final do write-up, que eu li para entender como explorar a vulnerabilidade.</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/ctf-br-firstflask-write-up/18.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Parte do código, referente ao /write_note</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>Eu criei um objeto, instanciei ele no dump do pickle e encodei a saída do dump com base64:</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/ctf-br-firstflask-write-up/19.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Explorando o pickle</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>E enviei a requisição:</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/ctf-br-firstflask-write-up/20.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Enviando a requisição para tentar a exploração</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>Acessando a nota criada é possível ver um erro 500:</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/ctf-br-firstflask-write-up/21.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Erro 500, servidor possívelmente recusou o uso da biblioteca "os"</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>Eu pensei que poderia ser que o sistema não aceita o uso da biblioteca "os" e resolvi mudar a biblioteca para outra que tem o mesmo papel - "commands":</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/ctf-br-firstflask-write-up/22.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Alterando a biblioteca usada</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>Enviando a requisição...</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/ctf-br-firstflask-write-up/23.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Enviando a requisição do base64 com a biblioteca alterada</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>E deu certo!</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/ctf-br-firstflask-write-up/24.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Resposta do servidor ao comando requerido (id)</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>A partir daí só foi necessário listar os diretórios e ir procurando a flag, que estava em "files/e7e7a4697554b5ae/flag".</p>
+      <p>E era só dar um cat nela!</p>
+      <figure class="figure">
+        <img src="{{ "/assets/images/ctf-br-firstflask-write-up/25.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Cat na flag</figcaption>
+      </figure>
+      <br />
+      <br />
+      <figure class="figure">
+        <img src="{{ "/assets/images/ctf-br-firstflask-write-up/26.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Enviando a requisição do cat</figcaption>
+      </figure>
+      <br />
+      <br />
+      <figure class="figure">
+        <img src="{{ "/assets/images/ctf-br-firstflask-write-up/27.png" | relative_url }}" class="figure-img img-fluid rounded" alt="..." />
+        <figcaption class="figure-caption text-center fw-bold fst-italic">Flag!</figcaption>
+      </figure>
+      <br />
+      <br />
+      <p>Bom, é isso galera.</p>
+      <p>Qualquer dúvida, crítica ou elogio ao write-up, fiquem à vontade para fazer!!</p>
+      <br />
+      <h4 class="fw-bold" id="references">Links sobre a exploração do pickle:</h4>
+      <p class="fw-bold"><a class="btn btn-dark text-white" href="https://blog.nelhage.com/2011/03/exploiting-pickle/">Exploiting misuse of Python's "pickle"</a></p>
+      <p class="fw-bold"><a class="btn btn-dark text-white" href="https://dan.lousqui.fr/explaining-and-exploiting-deserialization-vulnerability-with-python-en.html">Explaining and exploiting deserialization vulnerability with Python (EN)</a></p>
+      <p class="fw-bold"><a class="btn btn-dark text-white" href="https://medium.com/poka-techblog/rotten-pickles-a-quick-introduction-to-offensive-serialization-techniques-83fd4dd36edb">Rotten pickles: A quick introduction to offensive serialization techniques</a></p>
+    </section>
+  </div>
